@@ -1,6 +1,6 @@
 import os 
 
-os.chdir(r"C:\Users\Ted\OneDrive\Desktop\variational_autoencoder")
+os.chdir(r"C:\Users\Ted\OneDrive\Desktop\FEP_RL_VAE")
 
 print(os.getcwd())
 
@@ -165,5 +165,4 @@ def plot_complete_epoch_dict(complete_epoch_dict):
         else:
             print(f"Unknown format for key: {key}")
         """
-            
                     

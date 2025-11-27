@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torchinfo import summary
 from torch.profiler import profile, record_function, ProfilerActivity
 
-from general_FEP_RL.utils_torch import init_weights, model_start, model_end, mu_std, Interpolate
+from general_FEP_RL.utils_torch import init_weights, model_start, model_end, mu_std, Interpolate, add_position_layers
 
 
 
@@ -57,6 +57,8 @@ class Decode_Image(nn.Module):
                 scale_factor=2, 
                 mode='bilinear', 
                 align_corners=True),
+            #nn.PixelShuffle(
+            #    upscale_factor = 2),
             nn.Conv2d(
                 in_channels = 64, 
                 out_channels = 64, 
@@ -74,7 +76,22 @@ class Decode_Image(nn.Module):
                 size=None, 
                 scale_factor=2, 
                 mode='bilinear', 
-                align_corners=True)
+                align_corners=True),
+            #nn.PixelShuffle(
+            #    upscale_factor = 2),
+            nn.Conv2d(
+                in_channels = 64, 
+                out_channels = 64, 
+                kernel_size = 3, 
+                stride=1, 
+                padding=1, 
+                dilation=1, 
+                groups=1, 
+                bias=True, 
+                padding_mode='reflect', 
+                device=None, 
+                dtype=None),
+            nn.PReLU(),
             )
         
         example = self.b(example)
@@ -85,9 +102,7 @@ class Decode_Image(nn.Module):
             nn.Conv2d(
                 in_channels = 64, 
                 out_channels = 1,
-                kernel_size = 3,
-                padding = 1,
-                padding_mode = "reflect"))
+                kernel_size = 1))
         
         self.mu_std = mu_std(mu, entropy = entropy)
         
@@ -123,8 +138,7 @@ class Decode_Image(nn.Module):
     
     @staticmethod
     def loss_func(true_values, predicted_values):
-        #loss_value = F.binary_cross_entropy(predicted_values, true_values, reduction = "none")
-        loss_value = F.mse_loss(predicted_values, true_values, reduction = "none")
+        loss_value = F.binary_cross_entropy(predicted_values, true_values, reduction = "none")
         return loss_value
     
     

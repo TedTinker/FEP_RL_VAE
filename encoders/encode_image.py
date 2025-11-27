@@ -13,11 +13,11 @@ class Encode_Image(nn.Module):
     def __init__(self, verbose = False):
         super(Encode_Image, self).__init__()
         
-        self.out_features = 64
+        self.out_features = 256
                 
         self.example_input = torch.zeros(1, 1, 28, 28, 1)
         if(verbose):
-            print("\nDI Start:", self.example_input.shape)
+            print("\nEI Start:", self.example_input.shape)
 
         episodes, steps, [example] = model_start([(self.example_input, "cnn")])
         if(verbose): 
@@ -37,11 +37,26 @@ class Encode_Image(nn.Module):
                 device=None, 
                 dtype=None),
             nn.PReLU(),
-            Interpolate(
-                size=None, 
-                scale_factor=.5, 
-                mode='bilinear', 
-                align_corners=True),
+            nn.Conv2d(
+                in_channels = 64, 
+                out_channels = 64 // 4, 
+                kernel_size = 3, 
+                stride=1, 
+                padding=1, 
+                dilation=1, 
+                groups=1, 
+                bias=True, 
+                padding_mode='reflect', 
+                device=None, 
+                dtype=None),
+            nn.PReLU(),
+            #Interpolate(
+            #    size=None, 
+            #    scale_factor=.5, 
+            #    mode='bilinear', 
+            #    align_corners=True),
+            nn.PixelUnshuffle(
+                downscale_factor = 2),
             nn.Conv2d(
                 in_channels = 64, 
                 out_channels = 16, 
@@ -55,11 +70,26 @@ class Encode_Image(nn.Module):
                 device=None, 
                 dtype=None),
             nn.PReLU(),
-            Interpolate(
-                size=None, 
-                scale_factor=.5, 
-                mode='bilinear', 
-                align_corners=True))
+            nn.Conv2d(
+                in_channels = 16, 
+                out_channels = 16 // 4, 
+                kernel_size = 3, 
+                stride=1, 
+                padding=1, 
+                dilation=1, 
+                groups=1, 
+                bias=True, 
+                padding_mode='reflect', 
+                device=None, 
+                dtype=None),
+            nn.PReLU(),
+            #Interpolate(
+            #    size=None, 
+            #    scale_factor=.5, 
+            #    mode='bilinear', 
+            #    align_corners=True),
+            nn.PixelUnshuffle(
+                downscale_factor = 2),)
         
         example = self.a(example)
         if(verbose): 
@@ -90,6 +120,7 @@ class Encode_Image(nn.Module):
         
     def forward(self, image):
         episodes, steps, [image] = model_start([(image, "cnn")])
+        image = (image * 2) - 1
         a = self.a(image)
         a = a.reshape(image.shape[0], 16 * a.shape[2] * a.shape[3])
         output = self.b(a)

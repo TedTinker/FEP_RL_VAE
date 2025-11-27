@@ -1,8 +1,10 @@
 #%%
 
+import os
 import math
 from keras.datasets import mnist 
 import numpy as np
+import random
 from random import sample
 import matplotlib.pyplot as plt
 
@@ -39,7 +41,13 @@ def get_data(batch_size = 64, test = False):
 
 
 
-def get_repeating_digit_sequence(batch_size=64, steps=20, n_digits=3, test=False):
+
+def get_repeating_digit_sequence_random_start(
+    batch_size=64, 
+    steps=20, 
+    n_digits=3, 
+    test=False
+):
     x_data = test_x if test else train_x
     y_data = test_y if test else train_y
 
@@ -50,15 +58,18 @@ def get_repeating_digit_sequence(batch_size=64, steps=20, n_digits=3, test=False
     digit_labels = {}
 
     for d in range(n_digits):
-        # Get all indices with label == d
         d_indices = (y_data.argmax(dim=1) == d).nonzero(as_tuple=True)[0]
-        # Sample one random index for this digit
         idx = d_indices[torch.randint(len(d_indices), (1,)).item()]
-        digit_images[d] = x_data[idx]  # shape: (28, 28, 1)
-        digit_labels[d] = y_data[idx]  # shape: (10,)
+        digit_images[d] = x_data[idx]
+        digit_labels[d] = y_data[idx]
 
-    # 2. Create repeating digit pattern
-    digit_pattern = [i % n_digits for i in range(steps)]
+    # --- NEW: random start and direction ----
+    start_digit = random.randrange(n_digits)
+    direction = random.choice([1, -1])   # forward or backward
+
+    # 2. Create repeating digit pattern with wrap-around
+    digit_pattern = [ (start_digit + direction * i) % n_digits 
+                      for i in range(steps) ]
 
     # 3. Build batch
     x_batch = []
@@ -67,13 +78,31 @@ def get_repeating_digit_sequence(batch_size=64, steps=20, n_digits=3, test=False
     for _ in range(batch_size):
         x_seq = [digit_images[d] for d in digit_pattern]
         y_seq = [digit_labels[d] for d in digit_pattern]
-        x_batch.append(torch.stack(x_seq))  # shape: (steps, 28, 28, 1)
-        y_batch.append(torch.stack(y_seq))  # shape: (steps, 10)
 
-    x_batch = torch.stack(x_batch)  # shape: (batch_size, steps, 28, 28, 1)
-    y_batch = torch.stack(y_batch)  # shape: (batch_size, steps, 10)
+        x_batch.append(torch.stack(x_seq))      # (steps, 28, 28, 1)
+        y_batch.append(torch.stack(y_seq))      # (steps, 10)
 
-    return x_batch, y_batch.float()
+    x_batch = torch.stack(x_batch)              # (batch, steps, 28, 28, 1)
+    y_batch = torch.stack(y_batch).float()      # (batch, steps, 10)
+
+    return x_batch, y_batch
+
+
+
+def get_labeled_digits(
+    test=False
+):
+    x_data = test_x if test else train_x
+    y_data = test_y if test else train_y
+    
+    labeled_digits = {} 
+    
+    for d in range(10):
+        d_indices = (y_data.argmax(dim=1) == d).nonzero(as_tuple=True)[0]
+        idx = d_indices[torch.randint(len(d_indices), (1,)).item()]
+        labeled_digits[d] = x_data[idx]
+
+    return labeled_digits
 
 
 
@@ -115,5 +144,5 @@ def get_display_data():
 
 if __name__ == "__main__":
     x, y = get_display_data()
-    plot_images(x, "Real numbers", y.argmax(-1)) 
+    plot_images(x, "Real numbers", show = True) 
 # %%
