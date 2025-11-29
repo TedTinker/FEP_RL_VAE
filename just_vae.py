@@ -3,9 +3,15 @@ import torch
 from general_FEP_RL.agent import Agent
 from encoders.encode_image import Encode_Image
 from decoders.decode_image import Decode_Image
+from encoders.encode_number import Encode_Number
+from decoders.decode_number import Decode_Number
 
 from utils import add_to_epoch_dict, plot_complete_epoch_dict
 from get_data import plot_images, get_repeating_digit_sequence_random_start
+
+
+
+number_of_digits = 4
 
 
 
@@ -13,31 +19,33 @@ observation_dict = {
     "see_image" : {
         "encoder" : Encode_Image,
         "decoder" : Decode_Image,
+        "arg_dict" : {},
         "accuracy_scalar" : 1,                               
-        "beta" : 0,                      
+        "beta" : .001,                      
         "eta" : 0,
         },
     }
 
 # This actor/critic doesn't actually do anything.
 action_dict = {
-    "make_image" : {
-        "encoder" : Encode_Image,
-        "decoder" : Decode_Image,
-        "target_entropy" : 0,
-        "alpha_normal" : 0
-        }
+    "make_number" : {
+        "encoder" : Encode_Number,
+        "decoder" : Decode_Number,
+        "arg_dict" : {"number_of_digits" : number_of_digits},
+        "target_entropy" : -1,
+        "alpha_normal" : .1
+        },
     }
 
 
 
 vae_agent = Agent(
-    hidden_state_size = 256,
+    hidden_state_size = 512,
     observation_dict = observation_dict,       
     action_dict = action_dict,            
     number_of_critics = 1, 
-    tau = .25,
-    lr = .001,
+    tau = .99,
+    lr = .002,
     weight_decay = .00001,
     gamma = .99,
     capacity = 16, 
@@ -61,7 +69,7 @@ for e in range(epochs):
         x, y = get_repeating_digit_sequence_random_start(
             batch_size = 1, 
             steps = steps, 
-            n_digits = 3,
+            n_digits = number_of_digits,
             test = False)
                 
         vae_agent.begin()

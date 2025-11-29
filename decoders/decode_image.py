@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torchinfo import summary
 from torch.profiler import profile, record_function, ProfilerActivity
 
-from general_FEP_RL.utils_torch import init_weights, model_start, model_end, mu_std, Interpolate, add_position_layers
+from general_FEP_RL.utils_torch import init_weights, model_start, model_end, mu_std, Interpolate
 
 
 
@@ -14,7 +14,13 @@ from general_FEP_RL.utils_torch import init_weights, model_start, model_end, mu_
 
 # Decode Image (di).
 class Decode_Image(nn.Module):
-    def __init__(self, hidden_state_size, encoded_action_size = 0, entropy = False, verbose = False):
+    def __init__(
+            self, 
+            hidden_state_size, 
+            encoded_action_size = 0, 
+            entropy = False, 
+            arg_dict = {}, 
+            verbose = False):
         super(Decode_Image, self).__init__()
                         
         self.example_input = torch.zeros(32, 16, hidden_state_size + encoded_action_size)
@@ -43,15 +49,10 @@ class Decode_Image(nn.Module):
                 in_channels = 16, 
                 out_channels = 64, 
                 kernel_size = 3, 
-                stride=1, 
                 padding=1, 
-                dilation=1, 
-                groups=1, 
-                bias=True, 
-                padding_mode='reflect', 
-                device=None, 
-                dtype=None),
+                padding_mode='reflect'),
             nn.PReLU(),
+            
             Interpolate(
                 size=None, 
                 scale_factor=2, 
@@ -63,14 +64,8 @@ class Decode_Image(nn.Module):
                 in_channels = 64, 
                 out_channels = 64, 
                 kernel_size = 3, 
-                stride=1, 
                 padding=1, 
-                dilation=1, 
-                groups=1, 
-                bias=True, 
-                padding_mode='reflect', 
-                device=None, 
-                dtype=None),
+                padding_mode='reflect'),
             nn.PReLU(),
             Interpolate(
                 size=None, 
@@ -79,18 +74,13 @@ class Decode_Image(nn.Module):
                 align_corners=True),
             #nn.PixelShuffle(
             #    upscale_factor = 2),
+            
             nn.Conv2d(
                 in_channels = 64, 
                 out_channels = 64, 
                 kernel_size = 3, 
-                stride=1, 
                 padding=1, 
-                dilation=1, 
-                groups=1, 
-                bias=True, 
-                padding_mode='reflect', 
-                device=None, 
-                dtype=None),
+                padding_mode='reflect'),
             nn.PReLU(),
             )
         

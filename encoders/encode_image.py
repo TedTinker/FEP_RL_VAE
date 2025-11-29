@@ -10,7 +10,10 @@ from general_FEP_RL.utils_torch import init_weights, model_start, model_end, Int
 
 # Encode Image (ei).
 class Encode_Image(nn.Module):
-    def __init__(self, verbose = False):
+    def __init__(
+            self, 
+            arg_dict = {}, 
+            verbose = False):
         super(Encode_Image, self).__init__()
         
         self.out_features = 256
@@ -28,28 +31,17 @@ class Encode_Image(nn.Module):
                 in_channels = self.example_input.shape[-1], 
                 out_channels = 64, 
                 kernel_size = 3, 
-                stride=1, 
                 padding=1, 
-                dilation=1, 
-                groups=1, 
-                bias=True, 
-                padding_mode='reflect', 
-                device=None, 
-                dtype=None),
+                padding_mode='reflect'),
             nn.PReLU(),
             nn.Conv2d(
                 in_channels = 64, 
-                out_channels = 64 // 4, 
+                out_channels = 64, 
                 kernel_size = 3, 
-                stride=1, 
                 padding=1, 
-                dilation=1, 
-                groups=1, 
-                bias=True, 
-                padding_mode='reflect', 
-                device=None, 
-                dtype=None),
+                padding_mode='reflect'),
             nn.PReLU(),
+            
             #Interpolate(
             #    size=None, 
             #    scale_factor=.5, 
@@ -58,43 +50,32 @@ class Encode_Image(nn.Module):
             nn.PixelUnshuffle(
                 downscale_factor = 2),
             nn.Conv2d(
-                in_channels = 64, 
+                in_channels = 256, 
                 out_channels = 16, 
                 kernel_size = 3, 
-                stride=1, 
                 padding=1, 
-                dilation=1, 
-                groups=1, 
-                bias=True, 
-                padding_mode='reflect', 
-                device=None, 
-                dtype=None),
+                padding_mode='reflect'),
             nn.PReLU(),
             nn.Conv2d(
                 in_channels = 16, 
-                out_channels = 16 // 4, 
+                out_channels = 16, 
                 kernel_size = 3, 
-                stride=1, 
                 padding=1, 
-                dilation=1, 
-                groups=1, 
-                bias=True, 
-                padding_mode='reflect', 
-                device=None, 
-                dtype=None),
+                padding_mode='reflect'),
             nn.PReLU(),
+            
             #Interpolate(
             #    size=None, 
             #    scale_factor=.5, 
             #    mode='bilinear', 
             #    align_corners=True),
             nn.PixelUnshuffle(
-                downscale_factor = 2),)
+                downscale_factor = 2))
         
         example = self.a(example)
         if(verbose): 
             print("\ta:", example.shape)
-        example = example.reshape(example.shape[0], 16 * example.shape[2] * example.shape[3])
+        example = example.reshape(example.shape[0], 64 * example.shape[2] * example.shape[3])
         if(verbose): 
             print("\tReshaped:", example.shape)
                 
@@ -120,9 +101,8 @@ class Encode_Image(nn.Module):
         
     def forward(self, image):
         episodes, steps, [image] = model_start([(image, "cnn")])
-        image = (image * 2) - 1
         a = self.a(image)
-        a = a.reshape(image.shape[0], 16 * a.shape[2] * a.shape[3])
+        a = a.reshape(image.shape[0], 64 * a.shape[2] * a.shape[3])
         output = self.b(a)
         [output] = model_end(episodes, steps, [(output, "lin")])
         return(output)

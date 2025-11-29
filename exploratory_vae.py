@@ -14,10 +14,15 @@ from get_data import plot_images, get_labeled_digits
 
 
 
+number_of_digits = 4
+
+
+
 observation_dict = {
     "see_number" : {
         "encoder" : Encode_Number,
         "decoder" : Decode_Number,
+        "arg_dict" : {"number_of_digits" : number_of_digits},
         "accuracy_scalar" : .1,                               
         "complexity_scalar" : .01,      
         "beta" : .01,                      
@@ -26,6 +31,7 @@ observation_dict = {
     "see_image" : {
         "encoder" : Encode_Image,
         "decoder" : Decode_Image,
+        "arg_dict" : {},
         "accuracy_scalar" : 1,                               
         "complexity_scalar" : .001,      
         "beta" : .01,                      
@@ -37,6 +43,7 @@ action_dict = {
     "make_number" : {
         "encoder" : Encode_Number,
         "decoder" : Decode_Number,
+        "arg_dict" : {"number_of_digits" : number_of_digits},
         "target_entropy" : -1,
         "alpha_normal" : .1
         },
@@ -45,12 +52,12 @@ action_dict = {
 
 
 vae_agent = Agent(
-    hidden_state_size = 256,
+    hidden_state_size = 512,
     observation_dict = observation_dict,       
     action_dict = action_dict,            
     number_of_critics = 1, 
-    tau = .25,
-    lr = .001,
+    tau = .99,
+    lr = .003,
     weight_decay = .00001,
     gamma = .99,
     capacity = 16, 
@@ -72,7 +79,7 @@ for e in range(epochs):
     for episode in range(episodes_per_epoch):
         print(f"{episode}", end = " ")
         labeled_digits = get_labeled_digits()
-        current_digit = randint(0, 9)
+        current_digit = randint(0, number_of_digits-1)
                 
         vae_agent.begin()
                 
@@ -82,7 +89,7 @@ for e in range(epochs):
         reward_list = []
                     
         for step in range(steps):            
-            current_digit_tensor = torch.zeros([1, 1, 10])
+            current_digit_tensor = torch.zeros([1, 1, number_of_digits])
             current_digit_tensor[:, :, current_digit] = 1
                         
             obs = {
@@ -101,7 +108,7 @@ for e in range(epochs):
             if(step != steps-1):
                 step_dict_list.append(step_dict)
             
-        current_digit_tensor = torch.zeros([1, 1, 10])
+        current_digit_tensor = torch.zeros([1, 1, number_of_digits])
         current_digit_tensor[:, :, current_digit] = 1
         final_obs = {
             "see_number" : current_digit_tensor,
@@ -114,7 +121,7 @@ for e in range(epochs):
         
         
         for i in range(len(reward_list)):
-            current_digit_tensor = torch.zeros([1, 1, 10])
+            current_digit_tensor = torch.zeros([1, 1, number_of_digits])
             current_digit = torch.argmax(step_dict_list[i]["action"]["make_number"]).item()
             current_digit_tensor[:, :, current_digit] = 1
             step_dict_list[i]["action"]["make_number"] = current_digit_tensor
@@ -126,6 +133,7 @@ for e in range(epochs):
                 obs_list[i+1], 
                 done = i == len(reward_list)-1)
                     
+            
         
     digits = [obs["see_image"].squeeze(0).squeeze(0) for obs in obs_list]
     plot_images(digits, title = "REAL NUMBERS")

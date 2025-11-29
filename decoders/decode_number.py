@@ -10,7 +10,13 @@ from general_FEP_RL.utils_torch import init_weights, model_start, model_end, mu_
 
 # Decode Number (dn).
 class Decode_Number(nn.Module):
-    def __init__(self, hidden_state_size, encoded_action_size = 0, entropy = False, verbose = False):
+    def __init__(
+            self, 
+            hidden_state_size, 
+            encoded_action_size = 0, 
+            entropy = False, 
+            arg_dict = {"number_of_digits" : 10},
+            verbose = False):
         super(Decode_Number, self).__init__()
                         
         self.example_input = torch.zeros(32, 16, hidden_state_size + encoded_action_size)
@@ -22,7 +28,7 @@ class Decode_Number(nn.Module):
         mu = nn.Sequential(
             nn.Linear(
                 in_features = hidden_state_size,
-                out_features = 10))
+                out_features = arg_dict["number_of_digits"]))
         
         self.mu_std = mu_std(mu, entropy = entropy)
         

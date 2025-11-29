@@ -122,47 +122,4 @@ def plot_complete_epoch_dict(complete_epoch_dict):
     plt.tight_layout()
     plt.show()
     
-    
-    """
-    for key, value in complete_epoch_dict.items():
-        plt.figure(figsize=(7, 2))
-        
-        # Case 1: value is a list of floats (e.g., reward, actor_loss)
-        if isinstance(value, list) and isinstance(value[0], (float, int)):
-            plt.plot(value, label=key)
-            plt.title(f"{key} over epochs")
-            plt.xlabel("Epoch")
-            plt.ylabel(key)
-            plt.legend()
-            plt.grid(True)
-            plt.tight_layout()
-            plt.show()
-        
-        # Case 2: value is a list of lists (e.g., critic_losses)
-        elif isinstance(value, list) and isinstance(value[0], list):
-            for i, inner_list in enumerate(value):
-                plt.plot(inner_list, label=f"{key}[{i}]")
-            plt.title(f"{key} components over epochs")
-            plt.xlabel("Epoch")
-            plt.ylabel(key)
-            plt.legend()
-            plt.grid(True)
-            plt.tight_layout()
-            plt.show()
-
-        # Case 3: value is a dict of lists (e.g., accuracies["see_image"])
-        elif isinstance(value, dict):
-            for sub_key, sub_value in value.items():
-                plt.plot(sub_value, label=sub_key)
-            plt.title(f"{key} per modality over epochs")
-            plt.xlabel("Epoch")
-            plt.ylabel(key)
-            plt.legend()
-            plt.grid(True)
-            plt.tight_layout()
-            plt.show()
-
-        else:
-            print(f"Unknown format for key: {key}")
-        """
-                    
+     

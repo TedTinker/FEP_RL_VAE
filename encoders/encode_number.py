@@ -10,12 +10,15 @@ from general_FEP_RL.utils_torch import init_weights, model_start, model_end, Int
 
 # Encode Number (en).
 class Encode_Number(nn.Module):
-    def __init__(self, verbose = False):
+    def __init__(
+            self, 
+            arg_dict = {"number_of_digits" : 10},
+            verbose = False):
         super(Encode_Number, self).__init__()
         
         self.out_features = 16
                 
-        self.example_input = torch.zeros(1, 1, 10)
+        self.example_input = torch.zeros(1, 1, arg_dict["number_of_digits"])
         if(verbose):
             print("\nEN Start:", self.example_input.shape)
         example = self.example_input
@@ -23,7 +26,7 @@ class Encode_Number(nn.Module):
                 
         self.a = nn.Sequential(
             nn.Embedding(
-                num_embeddings = 10, 
+                num_embeddings = arg_dict["number_of_digits"], 
                 embedding_dim = self.out_features),
             nn.PReLU())
                 
