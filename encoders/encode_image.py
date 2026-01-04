@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torchinfo import summary
 from torch.profiler import profile, record_function, ProfilerActivity
 
-from general_FEP_RL.utils_torch import init_weights, model_start, model_end, Interpolate
+from general_FEP_RL.utils_torch import init_weights, model_start, model_end
 
 
 
@@ -12,11 +12,13 @@ from general_FEP_RL.utils_torch import init_weights, model_start, model_end, Int
 class Encode_Image(nn.Module):
     def __init__(
             self, 
-            arg_dict = {}, 
+            arg_dict = {
+                "encode_size" : 128,
+                "zp_zq_sizes" : [128, 128]}, 
             verbose = False):
         super(Encode_Image, self).__init__()
         
-        self.out_features = 256
+        self.arg_dict = arg_dict
                 
         self.example_input = torch.zeros(1, 1, 28, 28, 1)
         if(verbose):
@@ -29,28 +31,6 @@ class Encode_Image(nn.Module):
         self.a = nn.Sequential(
             nn.Conv2d(
                 in_channels = self.example_input.shape[-1], 
-                out_channels = 64, 
-                kernel_size = 3, 
-                padding=1, 
-                padding_mode='reflect'),
-            nn.PReLU(),
-            nn.Conv2d(
-                in_channels = 64, 
-                out_channels = 64, 
-                kernel_size = 3, 
-                padding=1, 
-                padding_mode='reflect'),
-            nn.PReLU(),
-            
-            #Interpolate(
-            #    size=None, 
-            #    scale_factor=.5, 
-            #    mode='bilinear', 
-            #    align_corners=True),
-            nn.PixelUnshuffle(
-                downscale_factor = 2),
-            nn.Conv2d(
-                in_channels = 256, 
                 out_channels = 16, 
                 kernel_size = 3, 
                 padding=1, 
@@ -64,11 +44,24 @@ class Encode_Image(nn.Module):
                 padding_mode='reflect'),
             nn.PReLU(),
             
-            #Interpolate(
-            #    size=None, 
-            #    scale_factor=.5, 
-            #    mode='bilinear', 
-            #    align_corners=True),
+            nn.PixelUnshuffle(
+                downscale_factor = 2),
+            
+            nn.Conv2d(
+                in_channels = 64, 
+                out_channels = 16, 
+                kernel_size = 3, 
+                padding=1, 
+                padding_mode='reflect'),
+            nn.PReLU(),
+            nn.Conv2d(
+                in_channels = 16, 
+                out_channels = 16, 
+                kernel_size = 3, 
+                padding=1, 
+                padding_mode='reflect'),
+            nn.PReLU(),
+            
             nn.PixelUnshuffle(
                 downscale_factor = 2))
         
@@ -82,7 +75,7 @@ class Encode_Image(nn.Module):
         self.b = nn.Sequential(
             nn.Linear(
                 in_features = example.shape[-1],
-                out_features = self.out_features),
+                out_features = self.arg_dict["encode_size"]),
             nn.PReLU())
                 
         example = self.b(example)

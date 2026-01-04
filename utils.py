@@ -67,7 +67,7 @@ def print_complete_epoch_dict(complete_epoch_dict):
                 
                 
 
-def plot_complete_epoch_dict(complete_epoch_dict):
+def plot_complete_epoch_dict(complete_epoch_dict, folder="", epoch = 0):
         
     plt.figure(figsize=(6, 6))
     for key, value in complete_epoch_dict["accuracy_losses"].items():
@@ -80,19 +80,25 @@ def plot_complete_epoch_dict(complete_epoch_dict):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    if folder != "":
+        os.makedirs(f"{folder}/accuracy", exist_ok=True)
+        plt.savefig(f"{folder}/accuracy/{epoch}.png")
     plt.show()
     
     plt.figure(figsize=(6, 6))
-    plt.plot(complete_epoch_dict["total_reward"], label="total")
     plt.plot(complete_epoch_dict["reward"], label="reward")
     for key, value in complete_epoch_dict["curiosities"].items():
         plt.plot(value, label=f"curiosity {key}")
+    plt.plot(complete_epoch_dict["total_reward"], label="total")
     plt.title(f"Rewards over epochs")
     plt.xlabel("Epoch")
     plt.ylabel(key)
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    if folder != "":
+        os.makedirs(f"{folder}/reward", exist_ok=True)
+        plt.savefig(f"{folder}/reward/{epoch}.png")
     plt.show()
     
     plt.figure(figsize=(6, 6))
@@ -109,6 +115,9 @@ def plot_complete_epoch_dict(complete_epoch_dict):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    if folder != "":
+        os.makedirs(f"{folder}/actor", exist_ok=True)
+        plt.savefig(f"{folder}/actor/{epoch}.png")
     plt.show()
     
     plt.figure(figsize=(6, 6))
@@ -120,6 +129,9 @@ def plot_complete_epoch_dict(complete_epoch_dict):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    if folder != "":
+        os.makedirs(f"{folder}/critic", exist_ok=True)
+        plt.savefig(f"{folder}/critic/{epoch}.png")
     plt.show()
     
      

@@ -118,8 +118,8 @@ def plot_images(images, title, show=True, name="", folder=""):
             ax.imshow(images[i - 1], cmap="gray")
         ax.axis("off")
     if name:
-        os.makedirs(f"images/{folder}", exist_ok=True)
-        plt.savefig(f"images/{folder}/{name}.png")
+        os.makedirs(f"{folder}", exist_ok=True)
+        plt.savefig(f"{folder}/{name}.png")
     if show:
         plt.show()
     plt.close()

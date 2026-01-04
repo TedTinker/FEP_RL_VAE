@@ -4,13 +4,9 @@ import torch.nn.functional as F
 from torchinfo import summary
 from torch.profiler import profile, record_function, ProfilerActivity
 
-from general_FEP_RL.utils_torch import init_weights, model_start, model_end, mu_std, Interpolate
+from general_FEP_RL.utils_torch import init_weights, model_start, model_end, mu_std
 
 
-
-
-    
-    
 
 # Decode Image (di).
 class Decode_Image(nn.Module):
@@ -47,33 +43,30 @@ class Decode_Image(nn.Module):
         self.b = nn.Sequential(
             nn.Conv2d(
                 in_channels = 16, 
-                out_channels = 64, 
+                out_channels = 256, 
                 kernel_size = 3, 
                 padding=1, 
                 padding_mode='reflect'),
             nn.PReLU(),
             
-            Interpolate(
-                size=None, 
-                scale_factor=2, 
-                mode='bilinear', 
-                align_corners=True),
-            #nn.PixelShuffle(
-            #    upscale_factor = 2),
+            nn.PixelShuffle(
+                upscale_factor = 2),
+            
             nn.Conv2d(
                 in_channels = 64, 
-                out_channels = 64, 
+                out_channels = 256, 
                 kernel_size = 3, 
                 padding=1, 
                 padding_mode='reflect'),
             nn.PReLU(),
-            Interpolate(
-                size=None, 
-                scale_factor=2, 
-                mode='bilinear', 
-                align_corners=True),
-            #nn.PixelShuffle(
-            #    upscale_factor = 2),
+            
+            #Interpolate(
+            #    size=None, 
+            #    scale_factor=2, 
+            #    mode='bilinear', 
+            #    align_corners=True),
+            nn.PixelShuffle(
+                upscale_factor = 2),
             
             nn.Conv2d(
                 in_channels = 64, 

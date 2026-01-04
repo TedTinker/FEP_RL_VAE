@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torchinfo import summary
 from torch.profiler import profile, record_function, ProfilerActivity
 
-from general_FEP_RL.utils_torch import init_weights, model_start, model_end, Interpolate
+from general_FEP_RL.utils_torch import init_weights
 
 
 
@@ -12,11 +12,14 @@ from general_FEP_RL.utils_torch import init_weights, model_start, model_end, Int
 class Encode_Number(nn.Module):
     def __init__(
             self, 
-            arg_dict = {"number_of_digits" : 10},
+            arg_dict = {
+                "encode_size" : 16,
+                "zp_zq_sizes" : [16],
+                "number_of_digits" : 10},
             verbose = False):
         super(Encode_Number, self).__init__()
         
-        self.out_features = 16
+        self.arg_dict = arg_dict
                 
         self.example_input = torch.zeros(1, 1, arg_dict["number_of_digits"])
         if(verbose):
@@ -27,7 +30,7 @@ class Encode_Number(nn.Module):
         self.a = nn.Sequential(
             nn.Embedding(
                 num_embeddings = arg_dict["number_of_digits"], 
-                embedding_dim = self.out_features),
+                embedding_dim = self.arg_dict["encode_size"]),
             nn.PReLU())
                 
         example = self.a(example)
